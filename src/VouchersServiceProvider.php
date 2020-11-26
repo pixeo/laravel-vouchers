@@ -2,6 +2,8 @@
 
 namespace FrittenKeeZ\Vouchers;
 
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
 class VouchersServiceProvider extends ServiceProvider
@@ -18,11 +20,13 @@ class VouchersServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot(): void
+    public function boot(Filesystem $filesystem): void
     {
         $this->publishes([$this->getConfigPath() => config_path('vouchers.php')]);
 
-        $this->loadMigrationsFrom(__DIR__ . '/../migrations');
+        $this->publishes([
+            __DIR__.'/../database/migrations/create_voucher_tables.php.stub' => $this->getMigrationFileName($filesystem),
+        ], 'migrations');
     }
 
     /**
@@ -47,5 +51,22 @@ class VouchersServiceProvider extends ServiceProvider
     protected function getConfigPath(): string
     {
         return __DIR__ . '/../config/vouchers.php';
+    }
+
+    /**
+     * Returns existing migration file if found, else uses the current timestamp.
+     *
+     * @param Filesystem $filesystem
+     * @return string
+     */
+    protected function getMigrationFileName(Filesystem $filesystem): string
+    {
+        $timestamp = date('Y_m_d_His');
+
+        return Collection::make($this->app->databasePath().DIRECTORY_SEPARATOR.'migrations'.DIRECTORY_SEPARATOR)
+            ->flatMap(function ($path) use ($filesystem) {
+                return $filesystem->glob($path.'*_create_voucher_tables.php');
+            })->push($this->app->databasePath()."/migrations/{$timestamp}_create_voucher_tables.php")
+            ->first();
     }
 }
