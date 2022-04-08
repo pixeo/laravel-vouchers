@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FrittenKeeZ\Vouchers;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
+use FrittenKeeZ\Vouchers\Console\Commands\MigrateCommand;
 use Illuminate\Support\ServiceProvider;
 
 class VouchersServiceProvider extends ServiceProvider
@@ -22,7 +25,8 @@ class VouchersServiceProvider extends ServiceProvider
      */
     public function boot(Filesystem $filesystem): void
     {
-        $this->publishes([$this->getConfigPath() => config_path('vouchers.php')]);
+        $this->publishes([$this->getPublishConfigPath() => config_path('vouchers.php')], 'config');
+        $this->publishes([$this->getPublishMigrationsPath() => database_path('migrations')], 'migrations');
 
         $this->publishes([
             __DIR__.'/../database/migrations/create_voucher_tables.php.stub' => $this->getMigrationFileName($filesystem),
@@ -36,7 +40,7 @@ class VouchersServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom($this->getConfigPath(), 'vouchers');
+        $this->mergeConfigFrom($this->getPublishConfigPath(), 'vouchers');
 
         $this->app->bind('vouchers', function () {
             return new Vouchers();
@@ -44,13 +48,23 @@ class VouchersServiceProvider extends ServiceProvider
     }
 
     /**
-     * Get config path.
+     * Get publish config path.
      *
      * @return string
      */
-    protected function getConfigPath(): string
+    protected function getPublishConfigPath(): string
     {
-        return __DIR__ . '/../config/vouchers.php';
+        return __DIR__ . '/../publishes/config/vouchers.php';
+    }
+
+    /**
+     * Get publish migrations path.
+     *
+     * @return string
+     */
+    protected function getPublishMigrationsPath(): string
+    {
+        return __DIR__ . '/../publishes/migrations/';
     }
 
     /**

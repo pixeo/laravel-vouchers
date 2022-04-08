@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
+use FrittenKeeZ\Vouchers\Config;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateVouchersTestTables extends Migration
+class AddPrimaryKeyToEntitiesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -15,11 +16,11 @@ class CreateVouchersTestTables extends Migration
      */
     public function up(): void
     {
-        Schema::create('colors', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasColumn(Config::table('entities'), 'id')) {
+            Schema::table(Config::table('entities'), function (Blueprint $table) {
+                $table->bigIncrements('id')->first();
+            });
+        }
     }
 
     /**
@@ -29,6 +30,6 @@ class CreateVouchersTestTables extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('colors');
+        // We don't want to risk any data loss, so no reversal.
     }
 }

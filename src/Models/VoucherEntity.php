@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace FrittenKeeZ\Vouchers\Models;
 
 use FrittenKeeZ\Vouchers\Config;
@@ -9,12 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class VoucherEntity extends Model
 {
-    /**
-     * The primary key for the model.
-     *
-     * @var string
-     */
-    protected $primaryKey = null;
+    use Scopes\VoucherEntity;
 
     /**
      * Indicates if the IDs are auto-incrementing.
@@ -33,7 +30,8 @@ class VoucherEntity extends Model
     /**
      * Constructor.
      *
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return void
      */
     public function __construct(array $attributes = [])
